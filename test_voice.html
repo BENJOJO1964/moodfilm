@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>語音輸入測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .transcript {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 語音輸入功能測試</h1>
+        
+        <div class="status">
+            <h3>狀態檢查</h3>
+            <p>瀏覽器支援: <span id="browserSupport">檢查中...</span></p>
+            <p>麥克風權限: <span id="permissionStatus">檢查中...</span></p>
+            <p>語音辨識狀態: <span id="recognitionStatus">未初始化</span></p>
+        </div>
+
+        <div>
+            <button id="startBtn" onclick="startVoiceInput()">🎤 開始語音輸入</button>
+            <button id="stopBtn" onclick="stopVoiceInput()" disabled>⏹️ 停止語音輸入</button>
+            <button onclick="checkPermissions()">🔍 檢查權限</button>
+        </div>
+
+        <div class="transcript">
+            <h3>語音轉錄結果</h3>
+            <p id="transcriptText">等待語音輸入...</p>
+        </div>
+
+        <div class="status">
+            <h3>調試信息</h3>
+            <p id="debugInfo">點擊按鈕開始測試...</p>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+
+        // 檢查瀏覽器支援
+        function checkBrowserSupport() {
+            const hasSpeechRecognition = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+            document.getElementById('browserSupport').textContent = hasSpeechRecognition ? '✅ 支援' : '❌ 不支援';
+            return hasSpeechRecognition;
+        }
+
+        // 檢查權限
+        async function checkPermissions() {
+            try {
+                if (navigator.permissions) {
+                    const permission = await navigator.permissions.query({ name: 'microphone' });
+                    document.getElementById('permissionStatus').textContent = 
+                        permission.state === 'granted' ? '✅ 已授權' : 
+                        permission.state === 'denied' ? '❌ 被拒絕' : '⏳ 待確認';
+                } else {
+                    document.getElementById('permissionStatus').textContent = '❓ 無法檢查';
+                }
+            } catch (error) {
+                document.getElementById('permissionStatus').textContent = '❌ 檢查失敗';
+                console.error('權限檢查失敗:', error);
+            }
+        }
+
+        // 初始化語音辨識
+        function initSpeechRecognition() {
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'zh-TW';
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    console.log('語音辨識開始');
+                    isListening = true;
+                    document.getElementById('recognitionStatus').textContent = '🎤 正在聆聽...';
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    updateDebugInfo('語音辨識已開始');
+                };
+
+                recognition.onresult = (event) => {
+                    console.log('語音辨識結果:', event);
+                    let finalTranscript = '';
+                    let interimTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i].transcript;
+                        } else {
+                            interimTranscript += event.results[i].transcript;
+                        }
+                    }
+
+                    if (interimTranscript) {
+                        document.getElementById('transcriptText').textContent = `即時結果: ${interimTranscript}`;
+                    }
+
+                    if (finalTranscript) {
+                        document.getElementById('transcriptText').textContent = `最終結果: ${finalTranscript}`;
+                        updateDebugInfo(`語音轉錄完成: ${finalTranscript}`);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('語音辨識錯誤:', event.error);
+                    updateDebugInfo(`錯誤: ${event.error}`);
+                    
+                    switch (event.error) {
+                        case 'not-allowed':
+                            alert('請允許麥克風權限！點擊網址欄左側的鎖頭圖示，然後允許麥克風權限。');
+                            break;
+                        case 'no-speech':
+                            alert('沒有檢測到語音，請重試');
+                            break;
+                        case 'audio-capture':
+                            alert('麥克風無法使用，請檢查麥克風設置');
+                            break;
+                        default:
+                            alert(`語音辨識錯誤: ${event.error}`);
+                    }
+                    
+                    stopVoiceInput();
+                };
+
+                recognition.onend = () => {
+                    console.log('語音辨識結束');
+                    isListening = false;
+                    document.getElementById('recognitionStatus').textContent = '⏹️ 已停止';
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('stopBtn').disabled = true;
+                    updateDebugInfo('語音辨識已結束');
+                };
+
+                document.getElementById('recognitionStatus').textContent = '✅ 已初始化';
+                updateDebugInfo('語音辨識初始化成功');
+                return true;
+            } catch (error) {
+                console.error('初始化失敗:', error);
+                updateDebugInfo(`初始化失敗: ${error.message}`);
+                return false;
+            }
+        }
+
+        // 開始語音輸入
+        function startVoiceInput() {
+            if (!checkBrowserSupport()) {
+                alert('您的瀏覽器不支援語音辨識功能');
+                return;
+            }
+
+            if (!recognition) {
+                if (!initSpeechRecognition()) {
+                    alert('語音辨識初始化失敗');
+                    return;
+                }
+            }
+
+            try {
+                recognition.start();
+                updateDebugInfo('正在啟動語音辨識...');
+            } catch (error) {
+                console.error('啟動失敗:', error);
+                updateDebugInfo(`啟動失敗: ${error.message}`);
+                alert('啟動語音辨識失敗，請重試');
+            }
+        }
+
+        // 停止語音輸入
+        function stopVoiceInput() {
+            if (recognition && isListening) {
+                try {
+                    recognition.stop();
+                    updateDebugInfo('正在停止語音辨識...');
+                } catch (error) {
+                    console.error('停止失敗:', error);
+                    updateDebugInfo(`停止失敗: ${error.message}`);
+                }
+            }
+        }
+
+        // 更新調試信息
+        function updateDebugInfo(message) {
+            const debugElement = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugElement.innerHTML += `<br>[${timestamp}] ${message}`;
+        }
+
+        // 頁面加載時檢查
+        window.onload = function() {
+            checkBrowserSupport();
+            checkPermissions();
+            updateDebugInfo('頁面已加載，開始測試語音輸入功能');
+        };
+    </script>
+</body>
+</html>
