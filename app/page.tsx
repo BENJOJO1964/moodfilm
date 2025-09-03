@@ -58,37 +58,6 @@ export default function HomePage() {
     }
   };
 
-  const handleRetryPanel = async (panelIndex: number) => {
-    if (!comicData) return;
-
-    try {
-      // 重新生成特定格子的圖片和音訊
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          mood: comicData.meta.mood,
-          context: comicData.meta.context,
-          style: comicData.meta.style,
-          mode: comicData.meta.mode,
-          retryPanelIndex: panelIndex,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('重試失敗');
-      }
-
-      const newData: GenerateResponse = await response.json();
-      setComicData(newData);
-    } catch (err) {
-      console.error('Retry error:', err);
-      alert('重試失敗，請稍後再試');
-    }
-  };
-
   const handleRestart = () => {
     setComicData(null);
     setError(null);
@@ -217,7 +186,6 @@ export default function HomePage() {
               <div className="bg-card border rounded-lg p-6">
                 <ComicPlayer 
                   data={comicData} 
-                  onRetryPanel={handleRetryPanel}
                   onRestart={handleRestart}
                 />
               </div>

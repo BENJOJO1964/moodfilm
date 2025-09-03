@@ -1,5 +1,6 @@
 export interface GeneratePayload {
   mood: string;            // 例：「心情低落但想被鼓勵」
+  context?: string;        // 情境選擇
   style?: 'healing' | 'funny' | 'passion' | 'mystery' | 'cute' | 'dramatic' | 'whimsical' | 'elegant' | 'raw' | 'dreamy' | 'positive' | 'negative' | 'traditional' | 'avant-garde' | 'neutral' | 'romantic' | 'mysterious' | 'adventurous' | 'philosophical' | 'surreal';
 }
 
@@ -11,12 +12,15 @@ export interface ComicPanel {
   visual_prompt: string; // 給影像模型的提示語
   duration_sec: number;  // 建議單格播放秒數
   image_b64?: string;    // data:image/png;base64,...
+  audio_b64?: string;    // 語音數據（已移除，但保留類型兼容性）
+  sfx_audio_b64?: string; // 音效數據（已移除，但保留類型兼容性）
 }
 
 export interface GenerateResponse {
   panels: ComicPanel[];
   meta: {
     mood: string;
+    context?: string;      // 添加 context 到響應元數據
     style?: string;
     model_text: string;
     model_image: string;

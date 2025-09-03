@@ -19,8 +19,7 @@ export function ComicPlayer({ data, onRestart, className }: ComicPlayerProps) {
         <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">你的心情漫畫</h2>
         <p className="text-blue-700 dark:text-blue-300">
           心情: {data.meta.mood} | 
-          風格: {data.meta.style || '治癒'} | 
-          模式: {data.meta.mode === 'fast' ? '快速' : '豐富'}
+          風格: {data.meta.style || '治癒'}
         </p>
         
         {/* 重新開始按鈕 */}

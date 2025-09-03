@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       // 使用 AI 生成的語音內容
       const panelWithText = {
         ...panel,
+        index: index, // 確保 index 屬性存在
         title: panel.title || `場景 ${index + 1}`,
         narration: panel.narration || `基於您的心情：${mood}`,
         dialogue: panel.dialogue || '',
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
         };
 
         // 檢查快取命中
-        if (imageB64.status === 'fulfilled' && imageB64.value.includes('cache hit')) {
+        if (imageB64 && imageB64.includes('cache hit')) {
           cachedHits++;
         }
 
