@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodStory 測試頁面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚇 MoodStory 組件測試</h1>
+        <p>這個頁面用來測試 MoodStory 組件是否正常工作</p>
+        
+        <div class="test-section">
+            <h2>🔍 問題診斷</h2>
+            <p>如果頁面顯示 "GOODLIFE" 而不是 MoodStory 內容，可能是以下原因：</p>
+            <ul>
+                <li>瀏覽器快取問題</li>
+                <li>組件導入錯誤</li>
+                <li>樣式衝突</li>
+                <li>開發服務器問題</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>🛠️ 解決步驟</h2>
+            <button class="button" onclick="testComponents()">🧪 測試組件</button>
+            <button class="button" onclick="clearCache()">🗑️ 清除快取</button>
+            <button class="button" onclick="restartServer()">🔄 重啟服務器</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 測試結果</h2>
+            <div id="testResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔗 直接連結</h2>
+            <p>嘗試直接訪問以下連結：</p>
+            <a href="http://localhost:3000" class="button">🚀 localhost:3000</a>
+            <a href="http://localhost:3001" class="button">🚀 localhost:3001</a>
+            <a href="http://localhost:3002" class="button">🚀 localhost:3002</a>
+            <a href="http://localhost:3003" class="button">🚀 localhost:3003</a>
+        </div>
+    </div>
+
+    <script>
+        function addTestResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `status ${type}`;
+            resultDiv.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function testComponents() {
+            addTestResult('開始測試組件...', 'info');
+            
+            // 測試基本功能
+            try {
+                // 檢查頁面標題
+                if (document.title.includes('MoodStory')) {
+                    addTestResult('✅ 頁面標題正確', 'success');
+                } else {
+                    addTestResult('❌ 頁面標題不正確', 'error');
+                }
+                
+                // 檢查是否有 MoodStory 相關內容
+                const bodyText = document.body.innerText;
+                if (bodyText.includes('MoodStory') || bodyText.includes('通勤族')) {
+                    addTestResult('✅ 頁面內容包含 MoodStory 元素', 'success');
+                } else {
+                    addTestResult('❌ 頁面內容不包含 MoodStory 元素', 'error');
+                }
+                
+                addTestResult('組件測試完成', 'info');
+            } catch (error) {
+                addTestResult('測試失敗: ' + error.message, 'error');
+            }
+        }
+
+        function clearCache() {
+            addTestResult('清除瀏覽器快取...', 'info');
+            
+            // 嘗試清除快取
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                    addTestResult('✅ 快取已清除', 'success');
+                });
+            } else {
+                addTestResult('❌ 瀏覽器不支援快取清除', 'error');
+            }
+            
+            // 建議用戶手動刷新
+            addTestResult('💡 請按 Ctrl+F5 (Windows) 或 Cmd+Shift+R (Mac) 強制刷新', 'info');
+        }
+
+        function restartServer() {
+            addTestResult('重啟開發服務器...', 'info');
+            addTestResult('1. 在終端按 Ctrl+C 停止服務器', 'info');
+            addTestResult('2. 執行 npm run dev 重新啟動', 'info');
+            addTestResult('3. 清除瀏覽器快取並刷新頁面', 'info');
+        }
+
+        // 頁面加載完成後執行測試
+        window.addEventListener('load', () => {
+            addTestResult('測試頁面加載完成', 'success');
+            addTestResult('點擊「測試組件」按鈕開始診斷', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari 語音功能測試</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        .error { color: #ff6b6b; }
+        .success { color: #51cf66; }
+        .warning { color: #ffd43b; }
+        .info { color: #74c0fc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Safari 語音功能測試</h1>
+        <p>這個頁面專門測試 Safari 瀏覽器的語音辨識功能</p>
+        
+        <div class="test-section">
+            <h2>🔍 瀏覽器檢測</h2>
+            <div id="browser-info" class="status"></div>
+            <button onclick="checkBrowser()">檢查瀏覽器</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 語音 API 檢測</h2>
+            <div id="api-info" class="status"></div>
+            <button onclick="checkSpeechAPI()">檢查語音 API</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎤 語音辨識測試</h2>
+            <div id="recognition-status" class="status">點擊開始測試語音辨識</div>
+            <button id="start-btn" onclick="startRecognition()">🎤 開始語音辨識</button>
+            <button id="stop-btn" onclick="stopRecognition()" disabled>🔴 停止語音辨識</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>📝 辨識結果</h2>
+            <div id="results" class="status">等待語音輸入...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔧 權限檢查</h2>
+            <div id="permission-status" class="status"></div>
+            <button onclick="checkPermissions()">檢查權限</button>
+        </div>
+    </div>
+
+    <script>
+        let recognition = null;
+        let isListening = false;
+
+        // 檢查瀏覽器信息
+        function checkBrowser() {
+            const info = document.getElementById('browser-info');
+            const userAgent = navigator.userAgent;
+            const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+            const isChrome = /Chrome/.test(userAgent);
+            const isFirefox = /Firefox/.test(userAgent);
+            
+            info.innerHTML = `
+                <div class="info">🌐 用戶代理: ${userAgent}</div>
+                <div class="${isSafari ? 'success' : 'info'}">🍎 Safari: ${isSafari ? '是' : '否'}</div>
+                <div class="${isChrome ? 'success' : 'info'}">🔵 Chrome: ${isChrome ? '是' : '否'}</div>
+                <div class="${isFirefox ? 'success' : 'info'}">🦊 Firefox: ${isFirefox ? '是' : '否'}</div>
+                <div class="info">📱 平台: ${navigator.platform}</div>
+                <div class="info">🔒 安全上下文: ${window.isSecureContext ? '是' : '否'}</div>
+                <div class="info">📡 協議: ${window.location.protocol}</div>
+            `;
+        }
+
+        // 檢查語音 API
+        function checkSpeechAPI() {
+            const info = document.getElementById('api-info');
+            const hasWebkit = 'webkitSpeechRecognition' in window;
+            const hasStandard = 'SpeechRecognition' in window;
+            const hasSupport = hasWebkit || hasStandard;
+            
+            info.innerHTML = `
+                <div class="${hasWebkit ? 'success' : 'error'}">🔵 webkitSpeechRecognition: ${hasWebkit ? '支援' : '不支援'}</div>
+                <div class="${hasStandard ? 'success' : 'error'}">🌐 SpeechRecognition: ${hasStandard ? '支援' : '不支援'}</div>
+                <div class="${hasSupport ? 'success' : 'error'}">🎤 總體支援: ${hasSupport ? '支援' : '不支援'}</div>
+            `;
+            
+            if (hasSupport) {
+                // 嘗試創建實例
+                try {
+                    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+                    recognition = new SpeechRecognition();
+                    info.innerHTML += '<div class="success">✅ 語音辨識實例創建成功</div>';
+                } catch (error) {
+                    info.innerHTML += `<div class="error">❌ 創建實例失敗: ${error.message}</div>`;
+                }
+            }
+        }
+
+        // 開始語音辨識
+        function startRecognition() {
+            if (!recognition) {
+                alert('請先檢查語音 API');
+                return;
+            }
+
+            try {
+                // 配置
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                // 嘗試設置語言
+                try {
+                    recognition.lang = 'zh-TW';
+                } catch (e) {
+                    try {
+                        recognition.lang = 'zh-CN';
+                    } catch (e2) {
+                        try {
+                            recognition.lang = 'en-US';
+                        } catch (e3) {
+                            console.log('無法設置語言');
+                        }
+                    }
+                }
+
+                // 事件處理
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('recognition-status').innerHTML = '<div class="success">🎤 正在聆聽...</div>';
+                    document.getElementById('start-btn').disabled = true;
+                    document.getElementById('stop-btn').disabled = false;
+                };
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('results').innerHTML = `
+                        <div class="success">✅ 辨識成功!</div>
+                        <div class="info">📝 結果: ${transcript}</div>
+                    `;
+                };
+
+                recognition.onerror = (event) => {
+                    document.getElementById('recognition-status').innerHTML = `
+                        <div class="error">❌ 語音辨識錯誤: ${event.error}</div>
+                        <div class="info">錯誤代碼: ${event.error}</div>
+                    `;
+                    resetButtons();
+                };
+
+                recognition.onend = () => {
+                    document.getElementById('recognition-status').innerHTML = '<div class="info">⏸️ 語音辨識結束</div>';
+                    resetButtons();
+                };
+
+                // 開始辨識
+                recognition.start();
+                
+            } catch (error) {
+                document.getElementById('recognition-status').innerHTML = `
+                    <div class="error">❌ 啟動失敗: ${error.message}</div>
+                `;
+                resetButtons();
+            }
+        }
+
+        // 停止語音辨識
+        function stopRecognition() {
+            if (recognition && isListening) {
+                recognition.stop();
+                isListening = false;
+            }
+        }
+
+        // 重置按鈕狀態
+        function resetButtons() {
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+
+        // 檢查權限
+        function checkPermissions() {
+            const status = document.getElementById('permission-status');
+            
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'microphone' }).then(result => {
+                    status.innerHTML = `
+                        <div class="info">🎤 麥克風權限狀態: ${result.state}</div>
+                        <div class="info">🔄 權限可變: ${result.onchange ? '是' : '否'}</div>
+                    `;
+                }).catch(error => {
+                    status.innerHTML = `<div class="error">❌ 無法檢查權限: ${error.message}</div>`;
+                });
+            } else {
+                status.innerHTML = '<div class="warning">⚠️ 瀏覽器不支援權限查詢 API</div>';
+            }
+        }
+
+        // 頁面加載時自動檢查
+        window.onload = function() {
+            checkBrowser();
+            checkSpeechAPI();
+            checkPermissions();
+        };
+    </script>
+</body>
+</html>

@@ -31,12 +31,30 @@ async function retryWithBackoff<T>(
   throw new Error('Max retries exceeded');
 }
 
+// 內容過濾函數
+function filterInappropriateContent(mood: string): boolean {
+  const inappropriateKeywords = [
+    '成人影片', '色情', '暴力', '血腥', '恐怖', '自殺', '毒品', '犯罪',
+    'adult', 'porn', 'violence', 'blood', 'gore', 'suicide', 'drugs', 'crime'
+  ];
+  
+  const moodLower = mood.toLowerCase();
+  return inappropriateKeywords.some(keyword => 
+    moodLower.includes(keyword.toLowerCase())
+  );
+}
+
 // 生成分鏡腳本
 export async function genStoryboard(
   mood: string,
   context?: string,
   style?: string
 ): Promise<ComicPanel[]> {
+  
+  // 檢查內容是否適當
+  if (filterInappropriateContent(mood)) {
+    throw new Error('請輸入適當的故事主題，避免不當內容');
+  }
   
   // 添加詳細的調試信息
   console.log('🎬 故事生成開始:', {
@@ -90,7 +108,21 @@ export async function genStoryboard(
         // 修復缺少的引號
         .replace(/([a-zA-Z_][a-zA-Z0-9_]*):\s*([^",\{\}\[\]]+?)(?=\s*[,}])/g, '$1: "$2"')
         // 修復控制字符
-        .replace(/[\x00-\x1F\x7F]/g, '');
+        .replace(/[\x00-\x1F\x7F]/g, '')
+        // 修復引號問題 - 統一使用英文引號
+        .replace(/[""]/g, '"')
+        .replace(/['']/g, "'")
+        // 修復可能的轉義問題
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'")
+        // 修復轉義引號問題
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'")
+        // 修復多餘的轉義字符
+        .replace(/\\\\/g, '\\')
+        // 修復 JSON 格式問題
+        .replace(/"([^"]*?)\\"/g, '"$1"')
+        .replace(/\\"([^"]*?)"/g, '"$1"');
       
       console.log('🎬 清理後的內容:', cleanedContent);
       
@@ -139,7 +171,16 @@ export async function genStoryboard(
       console.error('JSON parse error:', parseError);
       console.error('Raw content:', content);
       
-      // 不再使用預設模板，直接拋出錯誤
+      // 檢查是否為內容政策違規
+      if (content.includes('抱歉，我無法協助') || content.includes('無法滿足該請求')) {
+        throw new Error('內容政策違規：請輸入適當的故事主題');
+      }
+      
+      // 檢查是否為 JSON 格式錯誤
+      if (parseError instanceof SyntaxError) {
+        throw new Error('故事生成失敗：請嘗試其他故事主題');
+      }
+      
       throw new Error(`故事生成失敗: ${parseError.message || '未知錯誤'}`);
     }
   });
@@ -286,8 +327,8 @@ export async function genTTSB64(
   // 組合TTS文本
   const ttsText = TTS_TEXT(title, narration, dialogue, sfx);
   
-  // 如果提供了mood，將其添加到文本中
-  const finalText = mood ? `${ttsText} 基於主題：${mood}` : ttsText;
+  // 直接使用TTS文本，不添加主題後綴
+  const finalText = ttsText;
   
   console.log('Generating TTS for text:', finalText);
   

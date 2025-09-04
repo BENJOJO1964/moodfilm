@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MoodFilm - AI 動畫故事生成器',
-  description: '輸入你的故事主題，AI 為你生成專屬的動畫故事',
+  title: 'MoodStory - 通勤族專屬4格語音漫畫生成器',
+  description: '每天通勤5分鐘，讓AI畫一篇專屬你的4格語音漫畫',
 }
 
 export default function RootLayout({

@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { ComicPanel } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface PanelCardProps {
   panel: ComicPanel;
@@ -10,10 +12,43 @@ interface PanelCardProps {
 }
 
 export function PanelCard({ panel, className, isActive = false }: PanelCardProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleMuteToggle = () => {
+    if (!audioRef.current) return;
+    
+    audioRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+  };
+
+  const handleAudioError = () => {
+    console.error('Audio playback error');
+    setIsPlaying(false);
+  };
+
+
 
   return (
     <div className={cn(
-      "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 space-y-6 shadow-lg backdrop-blur-sm",
+      "bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/30 dark:via-indigo-950/30 dark:via-indigo-950/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6 space-y-6 shadow-lg backdrop-blur-sm",
       isActive && "ring-2 ring-blue-400 ring-offset-4 shadow-xl scale-105",
       className
     )}>
@@ -41,6 +76,41 @@ export function PanelCard({ panel, className, isActive = false }: PanelCardProps
         )}
       </div>
 
+      {/* 語音播放控制 */}
+      {panel.audio_b64 && (
+        <div className="bg-gradient-to-r from-green-100/50 to-emerald-100/50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg border border-green-200 dark:border-green-700 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
+              <Button
+                onClick={handlePlayPause}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                {isPlaying ? (
+                  <>
+                    <Pause className="w-4 h-4" />
+                    <span>暫停</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>播放故事</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+          
+          {/* 隱藏的音頻元素 */}
+          <audio
+            ref={audioRef}
+            src={panel.audio_b64}
+            onEnded={handleAudioEnded}
+            onError={handleAudioError}
+            preload="metadata"
+          />
+        </div>
+      )}
+
       {/* 橫式文字區域 */}
       <div className="space-y-3">
         {/* 旁白 */}
@@ -60,13 +130,7 @@ export function PanelCard({ panel, className, isActive = false }: PanelCardProps
             </p>
           </div>
         )}
-        
-
       </div>
-
-
-
-
 
       {/* 持續時間 */}
       <p className="text-sm text-blue-600 dark:text-blue-400 text-center font-medium">

@@ -50,8 +50,8 @@ export default function HomePage() {
       const errorMessage = err instanceof Error ? err.message : '發生未知錯誤';
       setError(errorMessage);
       
-      // 顯示錯誤信息給用戶
-      alert(`生成失敗: ${errorMessage}`);
+      // 不顯示 alert，讓 MoodForm 組件處理錯誤
+      // 這樣可以觸發友善提示
     } finally {
       console.log('🔄 設置加載狀態為false');
       setIsLoading(false);
@@ -65,15 +65,14 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* 背景圖片 - 固定定位，不受捲動影響 */}
+      {/* 背景圖片 - 強制固定定位，手機版絕對不捲動 */}
       <div
-        className="fixed inset-0 z-0 fixed-bg"
+        className="fixed inset-0 z-0"
         style={{
           backgroundImage: 'url(/stress.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
           opacity: 0.7,
           filter: 'contrast(1.3) brightness(1.15) saturate(1.2)',
           position: 'fixed',
@@ -81,71 +80,44 @@ export default function HomePage() {
           left: 0,
           right: 0,
           bottom: 0,
+          transform: 'none',
+          willChange: 'auto',
           zIndex: 0,
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          perspective: 1000,
-          WebkitPerspective: 1000,
-          transformStyle: 'preserve-3d',
-          WebkitTransformStyle: 'preserve-3d',
-          overflow: 'hidden',
-          WebkitOverflowScrolling: 'touch',
+          pointerEvents: 'none',
         }}
       />
-      {/* 背景遮罩 - 固定定位，不受捲動影響 */}
+      
+      {/* 背景遮罩 - 強制固定定位，手機版絕對不捲動 */}
       <div
-        className="fixed inset-0 z-0 fixed-bg"
+        className="fixed inset-0 z-0"
         style={{
           backgroundColor: 'rgba(255, 255, 255, 0.4)',
           backdropFilter: 'blur(0.3px)',
-          backgroundAttachment: 'fixed',
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 0,
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          perspective: 1000,
-          WebkitPerspective: 1000,
-          transformStyle: 'preserve-3d',
-          WebkitTransformStyle: 'preserve-3d',
-          overflow: 'hidden',
-          WebkitOverflowScrolling: 'touch',
+          transform: 'none',
+          willChange: 'auto',
         }}
       />
-      {/* 左上角LOGO - 固定定位，不受捲動影響 */}
+      
+      {/* 左上角LOGO - 強制固定定位，手機版絕對不捲動 */}
       <div 
-        className="fixed-logo"
-        style={{
+        className="fixed top-0 left-0 z-20 p-0"
+        style={{ 
           position: 'fixed',
-          top: '-8px',
-          left: '0px',
-          zIndex: 20,
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          willChange: 'transform',
-          backfaceVisibility: 'hidden',
-          WebkitBackfaceVisibility: 'hidden',
-          perspective: 1000,
-          WebkitPerspective: 1000,
-          transformStyle: 'preserve-3d',
-          WebkitTransformStyle: 'preserve-3d',
-          WebkitOverflowScrolling: 'touch',
+          top: 0,
+          left: 0,
+          transform: 'translateY(-20px)',
+          willChange: 'auto',
         }}
       >
         <img
           src="/ctx-logo.png"
-          alt="MoodFilm Logo"
-          className="h-16 w-auto drop-shadow-lg"
-          style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' }}
+          alt="MoodStory Logo"
+          className="h-24 w-auto drop-shadow-lg"
         />
       </div>
       
@@ -153,12 +125,19 @@ export default function HomePage() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
         {/* 標題 */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 drop-shadow-lg">MoodFilm</h1>
+          <h1 className="text-4xl font-bold mb-4 drop-shadow-lg">MoodStory</h1>
           
           {/* 副標題白色卡片 */}
           <div className="inline-block bg-white/95 dark:bg-white/90 rounded-xl px-6 py-3 shadow-lg border border-gray-200 dark:border-gray-300 backdrop-blur-sm">
             <p className="text-lg font-semibold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              ✨ 一鍵變身故事主角，AI 為你打造專屬動畫故事 ✨
+              🚇 每天通勤5分鐘，讓AI畫一篇專屬你的4格語音漫畫 ✨
+            </p>
+          </div>
+          
+          {/* 新增：通勤族專屬價值主張 */}
+          <div className="mt-4 inline-block bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg px-4 py-2 shadow-md">
+            <p className="text-sm text-blue-800 font-medium">
+              🎯 專為通勤族設計 • 快速生成 • 專屬故事 • 輕量4格語音漫畫
             </p>
           </div>
         </div>
@@ -192,11 +171,17 @@ export default function HomePage() {
             ) : (
               <div className="bg-card border rounded-lg p-4 sm:p-6 h-[600px] flex items-center justify-center mx-4 sm:mx-2 lg:mx-0">
                 <div className="text-center text-muted-foreground">
-                  <div className="text-6xl mb-4">🎬</div>
-                  <p className="text-lg">輸入故事主題開始生成你的專屬動畫</p>
+                  <div className="text-6xl mb-4">🚇</div>
+                  <p className="text-lg">輸入故事主題開始生成你的專屬4格語音漫畫</p>
                   <p className="text-sm mt-2">
-                    每格動畫都包含精美插圖和磁性語音講述的連續性故事
+                    每格漫畫都包含精美插圖和磁性語音講述的連續性故事
                   </p>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-700 font-medium">💡 通勤族專屬體驗</p>
+                    <p className="text-xs text-blue-600">• 快速生成，5分鐘完成</p>
+                    <p className="text-xs text-blue-600">• 4格輕量語音漫畫，適合碎片時間</p>
+                    <p className="text-xs text-blue-600">• 專屬故事，每天都有新驚喜</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -205,7 +190,7 @@ export default function HomePage() {
 
         {/* 底部說明 */}
         <div className="mt-12 text-center text-sm text-muted-foreground">
-          <p>支援多種風格和情境</p>
+          <p>🚇 專為通勤族設計 • 4格輕量語音漫畫 • 5分鐘快速生成 • 專屬故事體驗</p>
         </div>
       </div>
     </div>

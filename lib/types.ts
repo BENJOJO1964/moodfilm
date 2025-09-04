@@ -2,6 +2,7 @@ export interface GeneratePayload {
   mood: string;            // 例：「心情低落但想被鼓勵」
   context?: string;        // 情境選擇
   style?: 'healing' | 'funny' | 'passion' | 'mystery' | 'cute' | 'dramatic' | 'whimsical' | 'elegant' | 'raw' | 'dreamy' | 'positive' | 'negative' | 'traditional' | 'avant-garde' | 'neutral' | 'romantic' | 'mysterious' | 'adventurous' | 'philosophical' | 'surreal';
+  voiceGender?: 'male' | 'female';  // 語音性別選擇
 }
 
 export interface ComicPanel {

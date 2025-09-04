@@ -15,11 +15,14 @@ export function ComicPlayer({ data, onRestart, className }: ComicPlayerProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* 標題和元數據 */}
-      <div className="text-center space-y-2 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700 backdrop-blur-sm">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">你的心情漫畫</h2>
+      <div className="text-center space-y-2 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:via-indigo-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700 backdrop-blur-sm">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">你的專屬4格語音漫畫</h2>
         <p className="text-blue-700 dark:text-blue-300">
           心情: {data.meta.mood} | 
           風格: {data.meta.style || '治癒'}
+        </p>
+        <p className="text-sm text-blue-600 dark:text-blue-400">
+          🚇 專為通勤族設計 • 4格輕量漫畫 • 專屬故事體驗
         </p>
         
         {/* 重新開始按鈕 */}

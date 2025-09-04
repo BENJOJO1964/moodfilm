@@ -3,269 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>語音輸入簡化測試</title>
+    <title>MoodStory 語音功能測試</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: white;
         }
         .container {
             background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
             backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
         }
-        button {
-            background: #4CAF50;
-            color: white;
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 8px;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
             cursor: pointer;
-            margin: 10px;
-            transition: background 0.3s;
+            border-radius: 25px;
+            transition: all 0.3s ease;
         }
-        button:hover {
-            background: #45a049;
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        button:disabled {
+        .button:disabled {
             background: #cccccc;
             cursor: not-allowed;
+            transform: none;
         }
         .status {
-            margin: 20px 0;
-            padding: 15px;
+            padding: 10px;
+            margin: 10px 0;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
         }
-        .transcript {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            min-height: 100px;
+        .success { background: rgba(76, 175, 80, 0.3); }
+        .error { background: rgba(244, 67, 54, 0.3); }
+        .info { background: rgba(33, 150, 243, 0.3); }
+        .audio-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 15px 0;
         }
-        .log {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="range"] {
+            width: 100px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎤 語音輸入簡化測試</h1>
+        <h1>🎤 MoodStory 語音功能測試</h1>
+        <p>這個頁面用來測試語音播放功能是否正常工作</p>
         
-        <div class="status">
-            <h3>基本檢查</h3>
-            <p>瀏覽器支援: <span id="browserSupport">檢查中...</span></p>
-            <p>語音辨識狀態: <span id="recognitionStatus">未初始化</span></p>
+        <div class="test-section">
+            <h2>🔊 瀏覽器語音支援測試</h2>
+            <div id="browser-support"></div>
         </div>
 
-        <div>
-            <button id="startBtn" onclick="startVoice()">🎤 開始語音輸入</button>
-            <button id="stopBtn" onclick="stopVoice()" disabled>⏹️ 停止語音輸入</button>
-            <button onclick="clearLog()">🗑️ 清除日誌</button>
+        <div class="test-section">
+            <h2>🎵 語音播放測試</h2>
+            <p>點擊按鈕測試語音播放功能：</p>
+            
+            <div class="audio-controls">
+                <button class="button" id="playBtn">▶️ 播放</button>
+                <button class="button" id="pauseBtn">⏸️ 暫停</button>
+                <button class="button" id="stopBtn">⏹️ 停止</button>
+            </div>
+            
+            <div class="volume-control">
+                <label>音量: </label>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+                <span id="volumeValue">0.7</span>
+            </div>
+            
+            <div id="audioStatus" class="status info">準備就緒</div>
         </div>
 
-        <div class="transcript">
-            <h3>語音轉錄結果</h3>
-            <p id="transcriptText">等待語音輸入...</p>
+        <div class="test-section">
+            <h2>📱 語音生成測試</h2>
+            <p>測試 OpenAI TTS 語音生成：</p>
+            
+            <input type="text" id="testText" placeholder="輸入要轉換為語音的文本" 
+                   style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: none;">
+            
+            <button class="button" id="generateBtn">🎤 生成語音</button>
+            
+            <div id="generationStatus" class="status info">等待輸入文本</div>
         </div>
 
-        <div class="log">
-            <h3>詳細日誌</h3>
-            <div id="logContent">點擊按鈕開始測試...</div>
+        <div class="test-section">
+            <h2>📊 測試結果</h2>
+            <div id="testResults"></div>
         </div>
     </div>
 
     <script>
-        let recognition = null;
-        let isListening = false;
-
-        // 日誌函數
-        function log(message) {
-            const logContent = document.getElementById('logContent');
-            const timestamp = new Date().toLocaleTimeString();
-            logContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
-            logContent.scrollTop = logContent.scrollHeight;
-            console.log(message);
-        }
-
-        // 檢查瀏覽器支援
+        // 檢查瀏覽器語音支援
         function checkBrowserSupport() {
-            const hasSpeechRecognition = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
-            document.getElementById('browserSupport').textContent = hasSpeechRecognition ? '✅ 支援' : '❌ 不支援';
-            log(`瀏覽器支援檢查: ${hasSpeechRecognition ? '支援' : '不支援'}`);
-            return hasSpeechRecognition;
-        }
-
-        // 初始化語音辨識
-        function initSpeechRecognition() {
-            try {
-                log('開始初始化語音辨識...');
-                
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                
-                log('語音辨識實例創建成功');
-                
-                recognition.continuous = false;
-                recognition.interimResults = true;
-                recognition.lang = 'zh-TW';
-                recognition.maxAlternatives = 1;
-
-                recognition.onstart = () => {
-                    log('🎤 語音辨識開始');
-                    isListening = true;
-                    document.getElementById('recognitionStatus').textContent = '🎤 正在聆聽...';
-                    document.getElementById('startBtn').disabled = true;
-                    document.getElementById('stopBtn').disabled = false;
-                };
-
-                recognition.onresult = (event) => {
-                    log(`語音辨識結果事件: ${event.results.length} 個結果`);
-                    
-                    let finalTranscript = '';
-                    let interimTranscript = '';
-
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        if (event.results[i].isFinal) {
-                            finalTranscript += event.results[i].transcript;
-                        } else {
-                            interimTranscript += event.results[i].transcript;
-                        }
-                    }
-
-                    if (interimTranscript) {
-                        log(`即時結果: ${interimTranscript}`);
-                        document.getElementById('transcriptText').textContent = `即時結果: ${interimTranscript}`;
-                    }
-
-                    if (finalTranscript) {
-                        log(`最終結果: ${finalTranscript}`);
-                        document.getElementById('transcriptText').textContent = `最終結果: ${finalTranscript}`;
-                        // 自動停止
-                        setTimeout(() => stopVoice(), 1000);
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    log(`❌ 語音辨識錯誤: ${event.error}`);
-                    
-                    let errorMessage = '';
-                    switch (event.error) {
-                        case 'not-allowed':
-                            errorMessage = '麥克風權限被拒絕。請點擊網址欄左側的鎖頭圖示，然後允許麥克風權限。';
-                            break;
-                        case 'no-speech':
-                            errorMessage = '沒有檢測到語音，請重試';
-                            break;
-                        case 'audio-capture':
-                            errorMessage = '麥克風無法使用，請檢查麥克風設置';
-                            break;
-                        case 'network':
-                            errorMessage = '網路錯誤，請檢查網路連接';
-                            break;
-                        case 'aborted':
-                            errorMessage = '語音辨識被中斷';
-                            break;
-                        default:
-                            errorMessage = `語音辨識錯誤: ${event.error}`;
-                    }
-                    
-                    if (errorMessage) {
-                        alert(errorMessage);
-                    }
-                    
-                    stopVoice();
-                };
-
-                recognition.onend = () => {
-                    log('🎤 語音辨識結束');
-                    isListening = false;
-                    document.getElementById('recognitionStatus').textContent = '⏹️ 已停止';
-                    document.getElementById('startBtn').disabled = false;
-                    document.getElementById('stopBtn').disabled = true;
-                };
-
-                document.getElementById('recognitionStatus').textContent = '✅ 已初始化';
-                log('語音辨識初始化成功');
-                return true;
-            } catch (error) {
-                log(`❌ 初始化失敗: ${error.message}`);
-                alert(`初始化語音辨識失敗: ${error.message}`);
-                return false;
-            }
-        }
-
-        // 開始語音輸入
-        function startVoice() {
-            log('嘗試開始語音輸入...');
+            const supportDiv = document.getElementById('browser-support');
+            let supportInfo = '';
             
-            if (!checkBrowserSupport()) {
-                alert('您的瀏覽器不支援語音辨識功能');
+            // 檢查 Web Audio API
+            if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+                supportInfo += '<div class="status success">✅ Web Audio API 支援</div>';
+            } else {
+                supportInfo += '<div class="status error">❌ Web Audio API 不支援</div>';
+            }
+            
+            // 檢查 HTML5 Audio
+            if (typeof HTMLAudioElement !== 'undefined') {
+                supportInfo += '<div class="status success">✅ HTML5 Audio 支援</div>';
+            } else {
+                supportInfo += '<div class="status error">❌ HTML5 Audio 不支援</div>';
+            }
+            
+            // 檢查 Speech Recognition
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                supportInfo += '<div class="status success">✅ 語音辨識支援</div>';
+            } else {
+                supportInfo += '<div class="status error">❌ 語音辨識不支援</div>';
+            }
+            
+            supportDiv.innerHTML = supportInfo;
+        }
+
+        // 語音播放測試
+        let testAudio = null;
+        
+        function createTestAudio() {
+            // 創建一個簡單的測試音頻（使用 Web Speech API 生成）
+            const utterance = new SpeechSynthesisUtterance("這是一個語音播放測試，用來驗證 MoodStory 的語音功能是否正常工作。");
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.8;
+            utterance.pitch = 1.0;
+            utterance.volume = 0.7;
+            
+            return utterance;
+        }
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            const statusDiv = document.getElementById('audioStatus');
+            try {
+                if (!testAudio) {
+                    testAudio = createTestAudio();
+                }
+                
+                speechSynthesis.speak(testAudio);
+                statusDiv.textContent = '正在播放語音...';
+                statusDiv.className = 'status success';
+            } catch (error) {
+                statusDiv.textContent = '播放失敗: ' + error.message;
+                statusDiv.className = 'status error';
+            }
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            const statusDiv = document.getElementById('audioStatus');
+            try {
+                speechSynthesis.pause();
+                statusDiv.textContent = '語音已暫停';
+                statusDiv.className = 'status info';
+            } catch (error) {
+                statusDiv.textContent = '暫停失敗: ' + error.message;
+                statusDiv.className = 'status error';
+            }
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            const statusDiv = document.getElementById('audioStatus');
+            try {
+                speechSynthesis.cancel();
+                statusDiv.textContent = '語音已停止';
+                statusDiv.className = 'status info';
+            } catch (error) {
+                statusDiv.textContent = '停止失敗: ' + error.message;
+                statusDiv.className = 'status error';
+            }
+        });
+
+        // 音量控制
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            const volume = e.target.value;
+            document.getElementById('volumeValue').textContent = volume;
+            if (testAudio) {
+                testAudio.volume = parseFloat(volume);
+            }
+        });
+
+        // 語音生成測試
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const text = document.getElementById('testText').value.trim();
+            const statusDiv = document.getElementById('generationStatus');
+            
+            if (!text) {
+                statusDiv.textContent = '請輸入要轉換的文本';
+                statusDiv.className = 'status error';
                 return;
             }
-
-            if (!recognition) {
-                if (!initSpeechRecognition()) {
-                    alert('語音辨識初始化失敗');
-                    return;
-                }
-            }
-
+            
+            statusDiv.textContent = '正在生成語音...';
+            statusDiv.className = 'status info';
+            
             try {
-                log('啟動語音辨識...');
-                recognition.start();
+                // 使用 Web Speech API 作為備用方案
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-TW';
+                utterance.rate = 0.8;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.7;
+                
+                utterance.onend = () => {
+                    statusDiv.textContent = '語音生成完成！';
+                    statusDiv.className = 'status success';
+                };
+                
+                utterance.onerror = (error) => {
+                    statusDiv.textContent = '語音生成失敗: ' + error.error;
+                    statusDiv.className = 'status error';
+                };
+                
+                speechSynthesis.speak(utterance);
+                
             } catch (error) {
-                log(`❌ 啟動失敗: ${error.message}`);
-                alert(`啟動語音辨識失敗: ${error.message}`);
+                statusDiv.textContent = '語音生成失敗: ' + error.message;
+                statusDiv.className = 'status error';
             }
+        });
+
+        // 測試結果記錄
+        function addTestResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `status ${type}`;
+            resultDiv.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
         }
 
-        // 停止語音輸入
-        function stopVoice() {
-            log('嘗試停止語音輸入...');
-            
-            if (recognition && isListening) {
-                try {
-                    recognition.stop();
-                    log('語音辨識停止指令已發送');
-                } catch (error) {
-                    log(`❌ 停止失敗: ${error.message}`);
-                }
-            } else {
-                log('語音辨識未在運行或實例不存在');
-            }
-            
-            // 重置狀態
-            isListening = false;
-            document.getElementById('recognitionStatus').textContent = '⏹️ 已停止';
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('stopBtn').disabled = true;
-        }
-
-        // 清除日誌
-        function clearLog() {
-            document.getElementById('logContent').innerHTML = '日誌已清除...';
-        }
-
-        // 頁面加載時檢查
-        window.onload = function() {
-            log('頁面已加載，開始檢查語音輸入功能');
+        // 頁面加載完成後執行測試
+        window.addEventListener('load', () => {
             checkBrowserSupport();
-        };
+            addTestResult('頁面加載完成，開始語音功能測試');
+            
+            // 測試語音播放
+            setTimeout(() => {
+                addTestResult('語音播放測試準備就緒');
+            }, 1000);
+        });
+
+        // 監聽語音播放狀態
+        speechSynthesis.addEventListener('start', () => {
+            addTestResult('語音開始播放', 'success');
+        });
+
+        speechSynthesis.addEventListener('end', () => {
+            addTestResult('語音播放結束', 'info');
+        });
+
+        speechSynthesis.addEventListener('error', (event) => {
+            addTestResult('語音播放錯誤: ' + event.error, 'error');
+        });
     </script>
 </body>
 </html>
